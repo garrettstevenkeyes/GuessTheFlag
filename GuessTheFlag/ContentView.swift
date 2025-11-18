@@ -10,6 +10,8 @@ import SwiftUI
 struct ContentView: View {
     @State private var countries = ["Estonia", "France", "Germany", "Ireland", "Italy", "Nigeria", "Poland", "Spain", "UK", "Ukraine", "US"].shuffled()
     @State private var correctAnswer = Int.random(in: 0...2)
+    @State private var selectedFlag: Int? = nil
+    @State private var animationAmount = 0.0
     
     @State private var showingScore = false
     @State private var scoreTitle = ""
@@ -37,15 +39,25 @@ struct ContentView: View {
                             .foregroundStyle(.secondary)
                             .font(.subheadline.weight(.heavy))
                         Text(countries[correctAnswer])
-                            
                             .font(.largeTitle.weight(.semibold))
                     }
                     
                     ForEach(0..<3){number in
                         Button{
+                            selectedFlag = number
+                            withAnimation(.spring(response: 0.6, dampingFraction: 0.5)) {
+                                animationAmount += 360
+                            }
                             flagtapped(number)
                         } label: {
                             FlagImage(name: countries[number])
+                                .rotation3DEffect(
+                                    .degrees(selectedFlag == number ? animationAmount : 0),
+                                    axis: (x: 0, y: 1, z: 0)
+                                )
+                                .opacity(
+                                    selectedFlag == nil || selectedFlag == number ? 1 : 0.25
+                                )
                         }
                     }
                 }
@@ -80,6 +92,8 @@ struct ContentView: View {
     }
     
     func flagtapped(_ number: Int){
+        
+        
         if number == correctAnswer {
             scoreTitle = "Correct"
             userScore += 1
@@ -96,6 +110,8 @@ struct ContentView: View {
             // End the game and show final score
             showingGameOver = true
         } else {
+            selectedFlag = nil
+            animationAmount = 0
             countries.shuffle()
             correctAnswer = Int.random(in: 0...2)
         }
@@ -104,6 +120,8 @@ struct ContentView: View {
     func restartGame() {
         userScore = 0
         questionCount = 0
+        selectedFlag = nil
+        animationAmount = 0
         countries.shuffle()
         correctAnswer = Int.random(in: 0...2)
     }
